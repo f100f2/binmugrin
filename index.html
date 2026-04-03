@@ -39,9 +39,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--sand);color:var(--ink);di
 @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
 .top-bar{background:rgba(242,247,244,.92);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border-bottom:1px solid rgba(207,227,216,.6);padding-top:var(--sat);position:sticky;top:0;z-index:100;transition:background .3s}
 .top-bar-inner{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 1.1rem}
-.top-logo{font-family:var(--display-font);font-size:1.3rem;color:var(--gold);display:flex;align-items:center;gap:.4rem;transition:transform .2s}
+.top-logo{font-family:var(--display-font);font-size:1.82rem;color:var(--gold);display:flex;align-items:center;gap:.4rem;transition:transform .2s}
 .top-logo:active{transform:scale(.96)}
-.top-logo svg{width:24px;height:24px;fill:var(--gold)}
+.top-logo svg{width:34px;height:34px;fill:var(--gold)}
 .adm-btn{background:none;border:none;font-family:'Tajawal',sans-serif;font-size:.8rem;color:var(--ink3);cursor:pointer;padding:.35rem .7rem;border-radius:10px;transition:all .2s}
 .adm-btn:hover{background:rgba(46,125,82,.08)}
 .adm-btn.on{color:var(--ok);font-weight:600;background:rgba(46,125,82,.06)}
@@ -337,7 +337,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--sand);color:var(--ink);di
 .settings-section{background:var(--white);border:1px solid var(--sand3);border-radius:var(--r);padding:1.1rem;margin-bottom:.9rem;box-shadow:var(--shadow)}
 .settings-sec-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);font-weight:600;margin-bottom:.8rem}
 /* ── TOP LOGO with custom image ── */
-.top-logo-img{height:36px;width:auto;object-fit:contain;border-radius:4px}
+.top-logo-img{height:50px;width:auto;object-fit:contain;border-radius:4px}
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -523,7 +523,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--sand);color:var(--ink);di
     <div class="field" style="grid-column:1/-1"><label>نبذة شخصية</label><textarea id="m-bio" rows="3" placeholder="اكتب نبذة قصيرة عن الشخص…" style="resize:vertical"></textarea></div>
     <div class="form-grid">
       <div class="field"><label>اسم الأم</label><input id="m-mother" placeholder="اسم الأم الكاملة"></div>
-      <div class="field"><label>إخوة من الأب</label><input id="m-siblings-father" placeholder="الأسماء مفصولة بفاصلة"></div>
       <div class="field" style="grid-column:1/-1"><label>إخوة من الأم</label><input id="m-siblings-mother" placeholder="الأسماء مفصولة بفاصلة"></div>
     </div>
     <div class="tree-section">
@@ -1459,7 +1458,6 @@ window.showDetail=function(id){
       '<div class="d-row"><span class="d-lbl">الأب</span><span class="d-val">'+parHtml+'</span></div>'+
       dRow('اسم الأم',m.motherName)+
       '<div class="d-row"><span class="d-lbl">الأبناء</span><span class="d-val">'+kidsHtml+'</span></div>'+
-      (m.siblingsFather&&m.siblingsFather.length?dRow('إخوة من الأب',m.siblingsFather.join('، ')):'')+
       (m.siblingsMother&&m.siblingsMother.length?dRow('إخوة من الأم',m.siblingsMother.join('، ')):'')+
     '</div>'+
     (isAdmin?'<div style="margin-top:.5rem"><button class="btn btn-danger btn-sm" onclick="delMember(\''+m.id+'\')">حذف الفرد</button></div>':'');
@@ -1475,7 +1473,6 @@ window.editCurrent=function(){
   fillParentSel(m.id);fillChildren(m.id);
   ['name','role','phone','email','company','job','city','birth','linkedin','spouse','bio'].forEach(f=>document.getElementById('m-'+f).value=m[f]||'');
   document.getElementById('m-mother').value=m.motherName||'';
-  document.getElementById('m-siblings-father').value=(m.siblingsFather||[]).join('، ');
   document.getElementById('m-siblings-mother').value=(m.siblingsMother||[]).join('، ');
   document.getElementById('m-ext-kids').value=(m.externalKids||[]).join('، ');
   document.getElementById('m-gender').value=m.gender||'';
@@ -1674,7 +1671,6 @@ window.addChildOf=function(){
     fillParentSel(null);
     ['m-name','m-role','m-phone','m-email','m-company','m-job','m-city','m-linkedin','m-spouse','m-bio'].forEach(function(id){document.getElementById(id).value='';})
     document.getElementById('m-mother').value='';
-    document.getElementById('m-siblings-father').value='';
     document.getElementById('m-siblings-mother').value='';
     document.getElementById('m-ext-kids').value='';
     document.getElementById('ext-kids-wrap').style.display='none';
@@ -1697,7 +1693,6 @@ window.openAddMember=function(){
   haptic();editingId=null;pendingPhoto=null;fillParentSel(null);
   ['m-name','m-role','m-phone','m-email','m-company','m-job','m-city','m-linkedin','m-spouse','m-bio'].forEach(function(id){document.getElementById(id).value='';})
   document.getElementById('m-mother').value='';
-  document.getElementById('m-siblings-father').value='';
   document.getElementById('m-siblings-mother').value='';
   document.getElementById('m-ext-kids').value='';
   document.getElementById('ext-kids-wrap').style.display='none';;
@@ -1764,7 +1759,6 @@ window.saveMember=async function(){
     spouse:document.getElementById('m-spouse').value.trim(),
     bio:document.getElementById('m-bio').value.trim(),
     motherName:document.getElementById('m-mother').value.trim(),
-    siblingsFather:(document.getElementById('m-siblings-father').value.trim()?document.getElementById('m-siblings-father').value.split(',').map(function(s){return s.trim();}).filter(Boolean):[]),
     siblingsMother:(document.getElementById('m-siblings-mother').value.trim()?document.getElementById('m-siblings-mother').value.split(',').map(function(s){return s.trim();}).filter(Boolean):[]),
     externalKids:(document.getElementById('m-ext-kids').value.trim()?document.getElementById('m-ext-kids').value.split(',').map(function(s){return s.trim();}).filter(Boolean):[]),
     parentId:parentId,photo:pendingPhoto
@@ -2717,7 +2711,7 @@ window.saveMultiSons = async function(){
       city: s.city,
       email:'', company:'', job:'', role:'', linkedin:'',
       birth:'', spouse:'', bio:'', externalKids:[],
-      motherName:'', siblingsFather:[], siblingsMother:[],
+      motherName:'', siblingsMother:[],
       parentId: multiSonsParentId,
       photo: null,
     };
