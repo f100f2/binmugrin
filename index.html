@@ -37,7 +37,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--sand);color:var(--ink);di
 @keyframes spin{to{transform:rotate(360deg)}}
 .loader-txt{font-size:.83rem;color:var(--ink3);animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
-.top-bar{background:rgba(247,244,239,.92);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border-bottom:1px solid rgba(228,221,210,.6);padding-top:var(--sat);position:sticky;top:0;z-index:100;transition:background .3s}
+.top-bar{background:rgba(242,247,244,.92);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border-bottom:1px solid rgba(207,227,216,.6);padding-top:var(--sat);position:sticky;top:0;z-index:100;transition:background .3s}
 .top-bar-inner{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 1.1rem}
 .top-logo{font-family:var(--display-font);font-size:1.3rem;color:var(--gold);display:flex;align-items:center;gap:.4rem;transition:transform .2s}
 .top-logo:active{transform:scale(.96)}
@@ -521,6 +521,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--sand);color:var(--ink);di
     </div>
     <div class="field"><label>LinkedIn</label><input id="m-linkedin" placeholder="https://linkedin.com/in/..." dir="ltr" type="url"></div>
     <div class="field" style="grid-column:1/-1"><label>نبذة شخصية</label><textarea id="m-bio" rows="3" placeholder="اكتب نبذة قصيرة عن الشخص…" style="resize:vertical"></textarea></div>
+    <div class="form-grid">
+      <div class="field"><label>اسم الأم</label><input id="m-mother" placeholder="اسم الأم الكاملة"></div>
+      <div class="field"><label>إخوة من الأب</label><input id="m-siblings-father" placeholder="الأسماء مفصولة بفاصلة"></div>
+      <div class="field" style="grid-column:1/-1"><label>إخوة من الأم</label><input id="m-siblings-mother" placeholder="الأسماء مفصولة بفاصلة"></div>
+    </div>
     <div class="tree-section">
       <div class="tree-sec-lbl">ربط الشجرة</div>
       <div class="field" style="margin-bottom:.5rem"><label>الأب</label>
@@ -1452,7 +1457,10 @@ window.showDetail=function(id){
     '</div>':'')+
     '<div class="d-section"><div class="d-sec-title">الشجرة</div>'+
       '<div class="d-row"><span class="d-lbl">الأب</span><span class="d-val">'+parHtml+'</span></div>'+
+      dRow('اسم الأم',m.motherName)+
       '<div class="d-row"><span class="d-lbl">الأبناء</span><span class="d-val">'+kidsHtml+'</span></div>'+
+      (m.siblingsFather&&m.siblingsFather.length?dRow('إخوة من الأب',m.siblingsFather.join('، ')):'')+
+      (m.siblingsMother&&m.siblingsMother.length?dRow('إخوة من الأم',m.siblingsMother.join('، ')):'')+
     '</div>'+
     (isAdmin?'<div style="margin-top:.5rem"><button class="btn btn-danger btn-sm" onclick="delMember(\''+m.id+'\')">حذف الفرد</button></div>':'');
   document.getElementById('d-edit').style.display=isAdmin?'inline-flex':'none';
@@ -1466,6 +1474,9 @@ window.editCurrent=function(){
   editingId=m.id;pendingPhoto=m.photo||null;
   fillParentSel(m.id);fillChildren(m.id);
   ['name','role','phone','email','company','job','city','birth','linkedin','spouse','bio'].forEach(f=>document.getElementById('m-'+f).value=m[f]||'');
+  document.getElementById('m-mother').value=m.motherName||'';
+  document.getElementById('m-siblings-father').value=(m.siblingsFather||[]).join('، ');
+  document.getElementById('m-siblings-mother').value=(m.siblingsMother||[]).join('، ');
   document.getElementById('m-ext-kids').value=(m.externalKids||[]).join('، ');
   document.getElementById('m-gender').value=m.gender||'';
   document.getElementById('m-status').value=m.status||'حي';
@@ -1662,6 +1673,9 @@ window.addChildOf=function(){
     haptic();editingId=null;pendingPhoto=null;
     fillParentSel(null);
     ['m-name','m-role','m-phone','m-email','m-company','m-job','m-city','m-linkedin','m-spouse','m-bio'].forEach(function(id){document.getElementById(id).value='';})
+    document.getElementById('m-mother').value='';
+    document.getElementById('m-siblings-father').value='';
+    document.getElementById('m-siblings-mother').value='';
     document.getElementById('m-ext-kids').value='';
     document.getElementById('ext-kids-wrap').style.display='none';
   document.getElementById('m-ext-kids').value='';
@@ -1682,6 +1696,9 @@ window.addChildOf=function(){
 window.openAddMember=function(){
   haptic();editingId=null;pendingPhoto=null;fillParentSel(null);
   ['m-name','m-role','m-phone','m-email','m-company','m-job','m-city','m-linkedin','m-spouse','m-bio'].forEach(function(id){document.getElementById(id).value='';})
+  document.getElementById('m-mother').value='';
+  document.getElementById('m-siblings-father').value='';
+  document.getElementById('m-siblings-mother').value='';
   document.getElementById('m-ext-kids').value='';
   document.getElementById('ext-kids-wrap').style.display='none';;
   document.getElementById('m-birth').value='';
@@ -1746,6 +1763,9 @@ window.saveMember=async function(){
     linkedin:document.getElementById('m-linkedin').value,
     spouse:document.getElementById('m-spouse').value.trim(),
     bio:document.getElementById('m-bio').value.trim(),
+    motherName:document.getElementById('m-mother').value.trim(),
+    siblingsFather:(document.getElementById('m-siblings-father').value.trim()?document.getElementById('m-siblings-father').value.split(',').map(function(s){return s.trim();}).filter(Boolean):[]),
+    siblingsMother:(document.getElementById('m-siblings-mother').value.trim()?document.getElementById('m-siblings-mother').value.split(',').map(function(s){return s.trim();}).filter(Boolean):[]),
     externalKids:(document.getElementById('m-ext-kids').value.trim()?document.getElementById('m-ext-kids').value.split(',').map(function(s){return s.trim();}).filter(Boolean):[]),
     parentId:parentId,photo:pendingPhoto
   };
@@ -2620,6 +2640,13 @@ window.addSonRow = function(){
       '</select>' +
     '</div>' +
     '<div class="son-field">' +
+      '<label>الحالة</label>' +
+      '<select id="son-status-'+n+'">' +
+        '<option value="حي">حي ✓</option>' +
+        '<option value="متوفى">متوفى 🕊</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="son-field">' +
       '<label>رقم الجوال</label>' +
       '<input id="son-phone-'+n+'" placeholder="05xxxxxxxx" dir="ltr" type="tel">' +
     '</div>' +
@@ -2661,9 +2688,10 @@ window.saveMultiSons = async function(){
     }
     if(nameEl) nameEl.style.borderColor='';
     var gender = (document.getElementById('son-gender-'+id)||{}).value||'';
+    var status = (document.getElementById('son-status-'+id)||{}).value||'حي';
     var phone  = (document.getElementById('son-phone-'+id)||{}).value||'';
     var city   = (document.getElementById('son-city-'+id)||{}).value||'';
-    toAdd.push({ name:name, gender:gender, phone:phone, city:city });
+    toAdd.push({ name:name, gender:gender, status:status, phone:phone, city:city });
   });
 
   if(hasError){ toast('الرجاء تعبئة اسم جميع الأبناء', true); return; }
@@ -2684,11 +2712,12 @@ window.saveMultiSons = async function(){
       fullName: fullName,
       _fullName: fullName,
       gender: s.gender,
-      status: 'حي',
+      status: s.status||'حي',
       phone: s.phone,
       city: s.city,
       email:'', company:'', job:'', role:'', linkedin:'',
       birth:'', spouse:'', bio:'', externalKids:[],
+      motherName:'', siblingsFather:[], siblingsMother:[],
       parentId: multiSonsParentId,
       photo: null,
     };
