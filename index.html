@@ -1568,8 +1568,11 @@ function parseExcelRows(rows){
       role:String(row[8]||'').trim(),
       gender:String(row[9]||'').trim()||'',
       status:String(row[10]||'').trim()||'حي',
+      motherName:String(row[11]||'').trim(),
+      siblingsMother:(String(row[12]||'').trim()?String(row[12]).split(',').map(s=>s.trim()).filter(Boolean):[]),
       spouse:String(row[13]||'').trim(),
       bio:String(row[14]||'').trim(),
+      externalKids:(String(row[15]||'').trim()?String(row[15]).split(',').map(s=>s.trim()).filter(Boolean):[]),
       photo:null,parentId:null,
       id:'imp_'+Math.random().toString(36).slice(2),
     });
