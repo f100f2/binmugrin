@@ -1509,12 +1509,32 @@ window.deleteAllMembers=async function(){
 
 window.exportMembersExcel=function(){
   if(!members.length){toast('لا يوجد أعضاء للتصدير',true);return;}
-  var hdrs=['الاسم الكامل','الاسم','اسم الأب','اسم الجد','الجوال','البريد','جهة العمل','الوظيفة','المدينة','الميلاد','LinkedIn','الكنية','الجنس','الحالة','الزوج/الزوجة'];
+  var hdrs=['الاسم الكامل','الاسم','اسم الأب','اسم الجد','الجوال','البريد','جهة العمل','الوظيفة','المدينة','الميلاد','LinkedIn','الكنية','الجنس','الحالة','الزوج/الزوجة','اسم الأم','إخوة من الأم','أسماء أبناء الأنثى','نبذة شخصية'];
   function esc(v){var s=String(v||'');return (s.indexOf(',')>=0||s.indexOf('"')>=0)?'"'+s.split('"').join('""')+'"':s;}
   var rows=members.map(function(m){
     var par=m.parentId?members.find(function(p){return p.id===m.parentId;}):null;
     var grand=par&&par.parentId?members.find(function(p){return p.id===par.parentId;}):null;
-    return [m._fullName||m.fullName||m.name,m.name,par?par.name:'',grand?grand.name:'',m.phone||'',m.email||'',m.company||'',m.job||'',m.city||'',m.birth||'',m.linkedin||'',m.role||'',m.gender||'',m.status||'',m.spouse||''].map(esc).join(',');
+    return [
+      m._fullName||m.fullName||m.name,
+      m.name,
+      par?par.name:'',
+      grand?grand.name:'',
+      m.phone||'',
+      m.email||'',
+      m.company||'',
+      m.job||'',
+      m.city||'',
+      m.birth||'',
+      m.linkedin||'',
+      m.role||'',
+      m.gender||'',
+      m.status||'',
+      m.spouse||'',
+      m.motherName||'',
+      (m.siblingsMother||[]).join('، '),
+      (m.externalKids||[]).join('، '),
+      m.bio||''
+    ].map(esc).join(',');
   });
   var csv='\uFEFF'+hdrs.map(esc).join(',')+String.fromCharCode(13,10)+rows.join(String.fromCharCode(13,10));
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
@@ -1775,6 +1795,23 @@ window.saveMember=async function(){
       if(b.checked&&child.parentId!==editingId)await dbSet('members',Object.assign({},child,{parentId:editingId}));
       if(!b.checked&&child.parentId===editingId)await dbSet('members',Object.assign({},child,{parentId:null}));
     }
+    // ── تحديث أسماء جميع الفروع cascade ──
+    // أولاً: حدّث الـ members المحلي بالبيانات الجديدة
+    var idx=members.findIndex(function(m){return m.id===editingId;});
+    if(idx>=0)members[idx]=Object.assign({},members[idx],data);
+    // ثانياً: ابنِ قائمة بجميع الفروع وحدّثها
+    async function cascadeFullName(parentId){
+      var children=members.filter(function(m){return m.parentId===parentId;});
+      for(var ch of children){
+        var newFull=ch.name+' '+buildFullName(parentId);
+        if(newFull!==(ch.fullName||ch._fullName)){
+          ch.fullName=newFull;ch._fullName=newFull;
+          await dbSet('members',Object.assign({},ch,{fullName:newFull,_fullName:newFull}));
+        }
+        await cascadeFullName(ch.id);
+      }
+    }
+    await cascadeFullName(editingId);
   }
   closeOv('ov-member');haptic();
   if(!configured){renderTree(null,false);renderMembers();renderStats();}
